@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Escala de Roteirização · CD 107</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap');
+
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1e2530;
+    --border: #30363d;
+    --accent: #00b4d8;
+    --accent2: #0077b6;
+    --gold: #f4a261;
+    --green: #2ea043;
+    --red: #da3633;
+    --yellow: #d29922;
+    --text: #e6edf3;
+    --muted: #7d8590;
+    --carreta: #0077b6;
+    --bitruck: #9d4edd;
+    --truck: #2ea043;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-size: 13px;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #0a0f1a 0%, #0d1b2e 50%, #0a1628 100%);
+    border-bottom: 2px solid var(--accent);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(0,180,216,0.15);
+  }
+  .header-left { display: flex; align-items: center; gap: 14px; }
+  .header-logo {
+    width: 44px; height: 44px;
+    background: var(--accent);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800; font-size: 18px; color: #0d1117;
+  }
+  .header-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800; font-size: 22px;
+    letter-spacing: 1px;
+  }
+  .header-sub { font-size: 11px; color: var(--muted); margin-top: 2px; letter-spacing: 0.5px; }
+  .header-date {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px; color: var(--muted);
+    text-align: right;
+  }
+  #clock { font-size: 20px; font-weight: 700; color: var(--accent); }
+
+  /* UPLOAD ZONE */
+  .upload-section {
+    padding: 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 32px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    background: var(--bg);
+    position: relative;
+  }
+  .upload-zone:hover, .upload-zone.drag {
+    border-color: var(--accent);
+    background: rgba(0,180,216,0.05);
+    box-shadow: 0 0 24px rgba(0,180,216,0.15);
+  }
+  .upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .upload-icon { font-size: 36px; margin-bottom: 10px; }
+  .upload-title { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 700; color: var(--accent); }
+  .upload-hint { color: var(--muted); font-size: 12px; margin-top: 6px; }
+  .upload-loaded { color: var(--green); font-weight: 600; margin-top: 8px; font-size: 13px; }
+
+  /* KPI CARDS */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .kpi {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    transition: transform 0.2s;
+  }
+  .kpi:hover { transform: translateY(-2px); }
+  .kpi-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .kpi-value { font-family: 'Barlow Condensed', sans-serif; font-size: 26px; font-weight: 800; }
+  .kpi-sub { font-size: 10px; color: var(--muted); margin-top: 3px; }
+  .kpi.accent .kpi-value { color: var(--accent); }
+  .kpi.gold .kpi-value { color: var(--gold); }
+  .kpi.green .kpi-value { color: var(--green); }
+  .kpi.red .kpi-value { color: var(--red); }
+  .kpi.purple .kpi-value { color: #9d4edd; }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    padding: 16px 24px 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    overflow-x: auto;
+  }
+  .tab {
+    padding: 8px 20px;
+    border-radius: 8px 8px 0 0;
+    cursor: pointer;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+    border: 1px solid transparent;
+    border-bottom: none;
+    transition: all 0.2s;
+    white-space: nowrap;
+    background: transparent;
+  }
+  .tab:hover { color: var(--text); background: var(--surface2); }
+  .tab.active {
+    color: var(--accent);
+    background: var(--bg);
+    border-color: var(--border);
+    border-bottom-color: var(--bg);
+    margin-bottom: -1px;
+  }
+  .tab-badge {
+    display: inline-block;
+    background: var(--accent2);
+    color: #fff;
+    font-size: 10px;
+    border-radius: 10px;
+    padding: 1px 6px;
+    margin-left: 6px;
+    font-weight: 600;
+  }
+
+  /* CONTENT */
+  .content { padding: 20px 24px; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* FILTERS */
+  .filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .filter-btn {
+    padding: 5px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.2s;
+    font-family: 'Barlow', sans-serif;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #0d1117;
+  }
+  .filter-btn.comercial-btn.active { background: var(--gold); border-color: var(--gold); }
+  .search-box {
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-size: 12px;
+    width: 180px;
+    font-family: 'Barlow', sans-serif;
+  }
+  .search-box:focus { outline: none; border-color: var(--accent); }
+
+  /* TABLE */
+  .table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead { background: var(--surface2); position: sticky; top: 0; z-index: 10; }
+  th {
+    padding: 10px 12px;
+    text-align: left;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 2px solid var(--border);
+    cursor: pointer;
+    white-space: nowrap;
+    user-select: none;
+  }
+  th:hover { color: var(--accent); }
+  th.sorted { color: var(--accent); }
+  td {
+    padding: 9px 12px;
+    border-bottom: 1px solid rgba(48,54,61,0.5);
+    vertical-align: middle;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(0,180,216,0.04); }
+  tr.comercial-row td { background: rgba(244,162,97,0.05); }
+  tr.comercial-row:hover td { background: rgba(244,162,97,0.10); }
+
+  /* BADGES */
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .badge-carreta { background: rgba(0,119,182,0.25); color: #00b4d8; border: 1px solid rgba(0,119,182,0.4); }
+  .badge-bitruck { background: rgba(157,78,221,0.25); color: #c77dff; border: 1px solid rgba(157,78,221,0.4); }
+  .badge-truck { background: rgba(46,160,67,0.25); color: #3fb950; border: 1px solid rgba(46,160,67,0.4); }
+  .badge-comercial { background: rgba(244,162,97,0.25); color: var(--gold); border: 1px solid rgba(244,162,97,0.4); }
+  .badge-stok { background: rgba(125,133,144,0.15); color: var(--muted); border: 1px solid var(--border); }
+  .badge-sim { background: rgba(46,160,67,0.2); color: var(--green); }
+  .badge-nao-rot { background: rgba(218,54,51,0.2); color: #ff7b72; border: 1px solid rgba(218,54,51,0.3); }
+  .badge-day { display: inline-block; padding: 2px 7px; border-radius: 6px; font-size: 10px; font-weight: 700; margin: 1px; }
+  .day-DOM { background: #1a3a2a; color: #3fb950; }
+  .day-SEG { background: #0d2540; color: #58a6ff; }
+  .day-TER { background: #2d1f45; color: #c77dff; }
+  .day-QUA { background: #3d2400; color: #f4a261; }
+  .day-QUI { background: #3a1a1a; color: #ff7b72; }
+
+  /* WEIGHT BAR */
+  .weight-bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .weight-bar { height: 6px; border-radius: 3px; background: var(--border); flex: 1; min-width: 60px; overflow: hidden; }
+  .weight-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+  .weight-val { font-weight: 600; white-space: nowrap; }
+
+  /* AGENDA VISUAL */
+  .agenda-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+  .agenda-day {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .agenda-day-header {
+    padding: 10px 14px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 16px;
+    letter-spacing: 2px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .agenda-day-header .day-total {
+    font-size: 11px;
+    font-weight: 600;
+    opacity: 0.8;
+  }
+  .day-header-DOM { background: linear-gradient(135deg, #0f2d1a, #1a3a2a); color: #3fb950; }
+  .day-header-SEG { background: linear-gradient(135deg, #0a1a35, #0d2540); color: #58a6ff; }
+  .day-header-TER { background: linear-gradient(135deg, #1e1040, #2d1f45); color: #c77dff; }
+  .day-header-QUA { background: linear-gradient(135deg, #2a1500, #3d2400); color: #f4a261; }
+  .day-header-QUI { background: linear-gradient(135deg, #2a0f0f, #3a1a1a); color: #ff7b72; }
+  .agenda-store-list { padding: 8px; }
+  .agenda-store-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    border-radius: 8px;
+    margin-bottom: 4px;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+    cursor: default;
+  }
+  .agenda-store-item:hover { background: rgba(255,255,255,0.04); }
+  .agenda-store-item.comercial-item {
+    border-color: rgba(244,162,97,0.25);
+    background: rgba(244,162,97,0.04);
+  }
+  .agenda-store-num { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 16px; margin-right: 8px; min-width: 28px; }
+  .agenda-store-name { font-size: 11px; color: var(--muted); flex: 1; }
+  .agenda-store-weight { font-size: 10px; font-weight: 700; }
+  .agenda-store-veh { font-size: 9px; margin-top: 2px; }
+
+  /* TOTALS ROW */
+  .totals-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .day-total-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+  }
+  .day-total-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .day-total-val { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 800; margin-top: 4px; }
+  .day-total-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 60px 24px;
+    color: var(--muted);
+  }
+  .empty-icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-title { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; color: var(--text); margin-bottom: 8px; }
+
+  /* SECTION TITLE */
+  .section-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: 1px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* LEGEND */
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* SHARE BTN */
+  .share-btn {
+    padding: 7px 18px;
+    background: #25D366;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 12px;
+    font-family: 'Barlow', sans-serif;
+    transition: all 0.2s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .share-btn:hover { background: #1ebe5d; transform: translateY(-1px); }
+  .export-btn {
+    padding: 7px 18px;
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 12px;
+    font-family: 'Barlow', sans-serif;
+    transition: all 0.2s;
+  }
+  .export-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .actions-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+
+  /* PRIORITY FLAG */
+  .priority-flag { color: var(--gold); font-size: 12px; margin-left: 4px; }
+
+  /* VEHICLE SUMMARY */
+  .veh-summary { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .veh-chip {
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: 'Barlow Condensed', sans-serif;
+  }
+  .veh-chip-carreta { background: rgba(0,119,182,0.2); color: #00b4d8; border: 1px solid rgba(0,119,182,0.4); }
+  .veh-chip-bitruck { background: rgba(157,78,221,0.2); color: #c77dff; border: 1px solid rgba(157,78,221,0.4); }
+  .veh-chip-truck { background: rgba(46,160,67,0.2); color: #3fb950; border: 1px solid rgba(46,160,67,0.4); }
+
+  @media (max-width: 768px) {
+    .agenda-grid { grid-template-columns: 1fr 1fr; }
+    .totals-row { grid-template-columns: 1fr 1fr; }
+    .kpi-row { grid-template-columns: repeat(2, 1fr); }
+    .header { flex-direction: column; gap: 8px; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="header-logo">CD</div>
+    <div>
+      <div class="header-title">ESCALA DE ROTEIRIZAÇÃO</div>
+      <div class="header-sub">CD 107 · Não Roterizados · Mercearia / Bazar / Bebidas / Perfumaria</div>
+    </div>
+  </div>
+  <div class="header-date">
+    <div id="clock">--:--:--</div>
+    <div id="today-date">--/--/----</div>
+  </div>
+</div>
+
+<div class="upload-section">
+  <div class="upload-zone" id="dropZone">
+    <input type="file" id="fileInput" accept=".xlsx,.xls" />
+    <div class="upload-icon">📊</div>
+    <div class="upload-title">Arraste ou clique para carregar o XLSX</div>
+    <div class="upload-hint">Exportação diária do sistema · Coluna "Status Carga" será filtrada em "Não Roterizado"</div>
+    <div class="upload-loaded" id="uploadedName" style="display:none"></div>
+  </div>
+</div>
+
+<div id="kpi-row" class="kpi-row" style="display:none">
+  <div class="kpi accent">
+    <div class="kpi-label">Lojas Não Roterizadas</div>
+    <div class="kpi-value" id="kpi-lojas">0</div>
+    <div class="kpi-sub">com volume pendente</div>
+  </div>
+  <div class="kpi gold">
+    <div class="kpi-label">Peso Total</div>
+    <div class="kpi-value" id="kpi-peso">0</div>
+    <div class="kpi-sub">toneladas não roterizadas</div>
+  </div>
+  <div class="kpi green">
+    <div class="kpi-label">Valor em Estoque</div>
+    <div class="kpi-value" id="kpi-valor">R$ 0</div>
+    <div class="kpi-sub">total a roteirizar</div>
+  </div>
+  <div class="kpi purple">
+    <div class="kpi-label">Carretas Necessárias</div>
+    <div class="kpi-value" id="kpi-carretas">0</div>
+    <div class="kpi-sub">equivalente em carreta</div>
+  </div>
+  <div class="kpi red">
+    <div class="kpi-label">Lojas Comercial</div>
+    <div class="kpi-value" id="kpi-comercial">0</div>
+    <div class="kpi-sub">com prioridade máxima</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Linhas de Pedido</div>
+    <div class="kpi-value" id="kpi-linhas">0</div>
+    <div class="kpi-sub">registros não roterizados</div>
+  </div>
+</div>
+
+<div id="main-content" style="display:none">
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('agenda')">📅 Agenda por Dia <span class="tab-badge" id="badge-agenda">5</span></div>
+    <div class="tab" onclick="switchTab('lojas')">🏪 Por Loja <span class="tab-badge" id="badge-lojas">0</span></div>
+    <div class="tab" onclick="switchTab('veiculos')">🚛 Veículos <span class="tab-badge" id="badge-veiculos">0</span></div>
+  </div>
+
+  <div class="content">
+
+    <!-- AGENDA TAB -->
+    <div class="tab-panel active" id="panel-agenda">
+      <div class="section-title">Agenda Semanal de Separação · Não Roterizados</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#f4a261"></div> Comercial (Prioridade)</div>
+        <div class="legend-dot" style="background:#00b4d8; width:10px; height:10px; border-radius:2px;"></div><span style="font-size:11px;color:var(--muted)"> Carreta (≤26t)</span>
+        <div class="legend-dot" style="background:#c77dff; width:10px; height:10px; border-radius:2px;"></div><span style="font-size:11px;color:var(--muted)"> Bitruck (≤16t)</span>
+        <div class="legend-dot" style="background:#3fb950; width:10px; height:10px; border-radius:2px;"></div><span style="font-size:11px;color:var(--muted)"> Truck (≤11t)</span>
+      </div>
+      <div class="agenda-grid" id="agenda-grid"></div>
+      <div class="totals-row" id="totals-row"></div>
+    </div>
+
+    <!-- LOJAS TAB -->
+    <div class="tab-panel" id="panel-lojas">
+      <div class="actions-row">
+        <button class="filter-btn active" onclick="filterDay(this,'TODOS')">Todos os dias</button>
+        <button class="filter-btn" onclick="filterDay(this,'DOM')">DOM</button>
+        <button class="filter-btn" onclick="filterDay(this,'SEG')">SEG</button>
+        <button class="filter-btn" onclick="filterDay(this,'TER')">TER</button>
+        <button class="filter-btn" onclick="filterDay(this,'QUA')">QUA</button>
+        <button class="filter-btn" onclick="filterDay(this,'QUI')">QUI</button>
+        <button class="filter-btn comercial-btn" onclick="filterComercial(this)">⭐ Só Comercial</button>
+        <input class="search-box" type="text" id="searchBox" placeholder="🔍 Buscar loja..." oninput="renderLojas()">
+        <button class="export-btn" onclick="exportCSV()">⬇ Exportar CSV</button>
+        <button class="share-btn" onclick="shareWhatsapp()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          WhatsApp
+        </button>
+      </div>
+      <div class="table-wrap">
+        <table id="lojas-table">
+          <thead>
+            <tr>
+              <th onclick="sortTable('loja')">Loja ↕</th>
+              <th onclick="sortTable('nome')">Nome ↕</th>
+              <th onclick="sortTable('tipo')">Tipo</th>
+              <th onclick="sortTable('dias')">Dias Entrega</th>
+              <th onclick="sortTable('peso')">Peso (kg) ↕</th>
+              <th onclick="sortTable('cubagem')">Cubagem (m³) ↕</th>
+              <th onclick="sortTable('valor')">Valor ↕</th>
+              <th onclick="sortTable('linhas')">Linhas ↕</th>
+              <th onclick="sortTable('veiculo')">Veículo</th>
+              <th>Qtd</th>
+              <th>Carreta?</th>
+            </tr>
+          </thead>
+          <tbody id="lojas-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- VEICULOS TAB -->
+    <div class="tab-panel" id="panel-veiculos">
+      <div class="section-title">Consolidado de Veículos por Tipo</div>
+      <div id="veh-summary-area"></div>
+      <div id="veh-cards-area"></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="empty-state" id="empty-state">
+  <div class="empty-icon">📋</div>
+  <div class="empty-title">Nenhum arquivo carregado</div>
+  <div>Faça o upload do XLSX diário para visualizar a escala de roteirização</div>
+</div>
+
+<script>
+// ============================================================
+// CONFIG - AGENDA (baseada na imagem)
+// ============================================================
+const AGENDA = {
+  DOM: [1,8,30,31,33,36,40,41,46,50,55,58,60,90,95,49],
+  SEG: [2,9,12,16,20,21,22,38,39,42,47,48,54,75,85,32],
+  TER: [18,23,30,44,27,40,45,50,53,55,59,60,70,90,26,57],
+  QUA: [1,5,8,12,20,21,22,35,39,95,51,75,85,31,36,49],
+  QUI: [9,16,19,24,28,37,40,55,59,65,80,34,43,56,63],
+};
+
+const NO_CARRETA = new Set([1,2,5,9,18,19]);
+const COMERCIAL  = new Set([1,2,5,8,9,12,16,18,19]);
+
+const LOJA_NOME = {
+  1:'Passo Fundo',2:'Passo Fundo',5:'Passo Fundo',8:'Passo Fundo',9:'Passo Fundo',
+  12:'Ijuí',16:'Santa Cruz do Sul',18:'Cruz Alta',19:'Marau',
+  20:'Passo Fundo',21:'Ijuí',22:'POA - Assis Brasil',23:'Caxias do Sul',
+  24:'Santa Cruz do Sul',26:'Guaíba',27:'Lagoa Vermelha',28:'Cachoeira do Sul',
+  30:'Lages',31:'Tramandaí',32:'São Gabriel',33:'Uruguaiana',34:'Esteio',
+  35:'Caxias do Sul',36:'Torres',37:'Marau',38:'Soledade',39:'POA-Manoel Elias',
+  40:'Santa Maria',41:'Alegrete',42:'Alvorada',43:'Venâncio Aires',44:'São Borja',
+  45:'Cruz Alta',46:'Sarandi',47:'São Leopoldo',48:'Novo Hamburgo',49:'POA-Ipiranga',
+  50:'Passo Fundo',51:'Caxias do Sul',53:'Santa Maria',54:'Canoas',55:'Pelotas',
+  56:'Lajeado',57:'Imbé',58:'Erechim',59:'Pelotas',60:'Santo Ângelo',
+  63:'Viamão',65:'Rio Grande',70:'Vacaria',75:'Canoas - Boqueirão',80:'Passo Fundo',
+  85:'Gravatai',90:'Santa Rosa',95:'Capão da Canoa'
+};
+
+// Day colors
+const DAY_COLORS = {
+  DOM: {bg:'#1a3a2a', fg:'#3fb950', hdr:'linear-gradient(135deg,#0f2d1a,#1a3a2a)'},
+  SEG: {bg:'#0d2540', fg:'#58a6ff', hdr:'linear-gradient(135deg,#0a1a35,#0d2540)'},
+  TER: {bg:'#2d1f45', fg:'#c77dff', hdr:'linear-gradient(135deg,#1e1040,#2d1f45)'},
+  QUA: {bg:'#3d2400', fg:'#f4a261', hdr:'linear-gradient(135deg,#2a1500,#3d2400)'},
+  QUI: {bg:'#3a1a1a', fg:'#ff7b72', hdr:'linear-gradient(135deg,#2a0f0f,#3a1a1a)'},
+};
+
+// ============================================================
+// STATE
+// ============================================================
+let storeData = {};   // { lojaNum: { peso, cubagem, valor, linhas, itens } }
+let activeDay = 'TODOS';
+let onlyComercial = false;
+let sortCol = 'peso';
+let sortAsc = false;
+let maxPeso = 0;
+
+// ============================================================
+// CLOCK
+// ============================================================
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleTimeString('pt-BR');
+  document.getElementById('today-date').textContent = now.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'});
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ============================================================
+// FILE UPLOAD
+// ============================================================
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag'));
+dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag'); handleFile(e.dataTransfer.files[0]); });
+fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+
+function handleFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const wb = XLSX.read(e.target.result, {type:'binary', cellDates:true});
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, {defval:''});
+    processData(rows);
+    document.getElementById('uploadedName').textContent = '✓ ' + file.name + ' carregado com sucesso';
+    document.getElementById('uploadedName').style.display = 'block';
+  };
+  reader.readAsBinaryString(file);
+}
+
+// ============================================================
+// PROCESS DATA
+// ============================================================
+function processData(rows) {
+  storeData = {};
+  const naoRot = rows.filter(r => {
+    const sc = (r['Status Carga'] || '').toString().trim();
+    return sc === 'Não Roterizado';
+  });
+
+  naoRot.forEach(r => {
+    const loja = parseInt(r['Nroempdestino'] || 0);
+    if (!loja) return;
+    if (!storeData[loja]) storeData[loja] = {peso:0, cubagem:0, valor:0, linhas:0, itens:0};
+    storeData[loja].peso     += parseFloat(r['Peso Bruto'] || 0);
+    storeData[loja].cubagem  += parseFloat(r['Cubagem'] || 0);
+    storeData[loja].valor    += parseFloat(r['Valor'] || 0);
+    storeData[loja].linhas   += 1;
+    storeData[loja].itens    += parseFloat(r['Quantidade'] || 0);
+  });
+
+  maxPeso = Math.max(...Object.values(storeData).map(d => d.peso), 1);
+
+  updateKPIs();
+  renderAgenda();
+  renderLojas();
+  renderVeiculos();
+
+  document.getElementById('kpi-row').style.display = 'grid';
+  document.getElementById('main-content').style.display = 'block';
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('badge-lojas').textContent = Object.keys(storeData).length;
+}
+
+// ============================================================
+// KPIs
+// ============================================================
+function updateKPIs() {
+  const lojas = Object.keys(storeData).length;
+  const pesoTotal = Object.values(storeData).reduce((a,b) => a + b.peso, 0);
+  const valorTotal = Object.values(storeData).reduce((a,b) => a + b.valor, 0);
+  const linhasTotal = Object.values(storeData).reduce((a,b) => a + b.linhas, 0);
+  const comercialCount = Object.keys(storeData).filter(k => COMERCIAL.has(parseInt(k))).length;
+  const eqCarretas = pesoTotal / 26000;
+
+  document.getElementById('kpi-lojas').textContent = lojas;
+  document.getElementById('kpi-peso').textContent = (pesoTotal/1000).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1}) + 't';
+  document.getElementById('kpi-valor').textContent = 'R$ ' + (valorTotal/1000).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0}) + 'k';
+  document.getElementById('kpi-carretas').textContent = eqCarretas.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});
+  document.getElementById('kpi-comercial').textContent = comercialCount;
+  document.getElementById('kpi-linhas').textContent = linhasTotal.toLocaleString('pt-BR');
+}
+
+// ============================================================
+// VEHICLE LOGIC
+// ============================================================
+function calcVehicle(loja, peso) {
+  const noCarreta = NO_CARRETA.has(loja);
+  if (noCarreta) {
+    if (peso <= 11000) return {tipo:'Truck', qtd:1, limite:11000};
+    const qtd = Math.ceil(peso / 16000);
+    return {tipo:'Bitruck', qtd, limite:16000};
+  } else {
+    if (peso <= 11000) return {tipo:'Truck', qtd:1, limite:11000};
+    if (peso <= 16000) return {tipo:'Bitruck', qtd:1, limite:16000};
+    const qtd = Math.ceil(peso / 26000);
+    return {tipo:'Carreta', qtd, limite:26000};
+  }
+}
+
+function vehBadge(tipo) {
+  if (tipo === 'Carreta') return '<span class="badge badge-carreta">🚛 Carreta</span>';
+  if (tipo === 'Bitruck') return '<span class="badge badge-bitruck">🚚 Bitruck</span>';
+  return '<span class="badge badge-truck">🚐 Truck</span>';
+}
+
+function vehColor(tipo) {
+  if (tipo === 'Carreta') return '#00b4d8';
+  if (tipo === 'Bitruck') return '#c77dff';
+  return '#3fb950';
+}
+
+// ============================================================
+// AGENDA TAB
+// ============================================================
+function renderAgenda() {
+  const days = ['DOM','SEG','TER','QUA','QUI'];
+  let gridHtml = '';
+  let totalsHtml = '';
+  const dc = DAY_COLORS;
+
+  days.forEach(day => {
+    const storesInDay = AGENDA[day];
+    const col = dc[day];
+    let dayPeso = 0, dayCarretas = 0;
+
+    // Sort: comercial first, then by peso desc
+    const sorted = [...storesInDay].sort((a,b) => {
+      const ac = COMERCIAL.has(a) ? 0 : 1;
+      const bc = COMERCIAL.has(b) ? 0 : 1;
+      if (ac !== bc) return ac - bc;
+      const pa = storeData[a]?.peso || 0;
+      const pb = storeData[b]?.peso || 0;
+      return pb - pa;
+    });
+
+    let itemsHtml = '';
+    sorted.forEach(loja => {
+      const d = storeData[loja];
+      if (!d || d.peso === 0) {
+        // Store in agenda but no pendency
+        const isCom = COMERCIAL.has(loja);
+        itemsHtml += `<div class="agenda-store-item${isCom?' comercial-item':''}">
+          <span class="agenda-store-num" style="color:${isCom?'#f4a261':'#7d8590'}">${loja}</span>
+          <span class="agenda-store-name">${LOJA_NOME[loja]||'?'}</span>
+          <span class="agenda-store-weight" style="color:#30363d; font-size:10px">sem pendência</span>
+        </div>`;
+        return;
+      }
+      const v = calcVehicle(loja, d.peso);
+      dayPeso += d.peso;
+      dayCarretas += v.qtd * (v.tipo === 'Carreta' ? 1 : v.tipo === 'Bitruck' ? 0.6 : 0.4);
+      const isCom = COMERCIAL.has(loja);
+      const vc = vehColor(v.tipo);
+      itemsHtml += `<div class="agenda-store-item${isCom?' comercial-item':''}" title="Peso: ${fmtKg(d.peso)} | Valor: ${fmtVal(d.valor)}">
+        <span class="agenda-store-num" style="color:${isCom?'#f4a261':col.fg}">${loja}${isCom?'⭐':''}</span>
+        <div style="flex:1">
+          <div class="agenda-store-name">${LOJA_NOME[loja]||'?'}</div>
+          <div class="agenda-store-veh" style="color:${vc}">${v.tipo} ${v.qtd > 1 ? '×'+v.qtd : ''}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="agenda-store-weight" style="color:${vc}">${fmtKg(d.peso)}</div>
+          <div style="font-size:9px;color:var(--muted)">${fmtVal(d.valor)}</div>
+        </div>
+      </div>`;
+    });
+
+    const hasPendency = sorted.some(l => storeData[l]?.peso > 0);
+
+    gridHtml += `<div class="agenda-day">
+      <div class="agenda-day-header day-header-${day}" style="background:${col.hdr}; color:${col.fg}">
+        <span>${day} · 22h</span>
+        <span class="day-total">${hasPendency ? fmtKg(dayPeso) : 'sem pendências'}</span>
+      </div>
+      <div class="agenda-store-list">${itemsHtml}</div>
+    </div>`;
+
+    totalsHtml += `<div class="day-total-card">
+      <div class="day-total-label">${day}</div>
+      <div class="day-total-val" style="color:${col.fg}">${fmtKg(dayPeso)}</div>
+      <div class="day-total-sub">${fmtVal(Object.entries(storeData).filter(([k])=> AGENDA[day].includes(parseInt(k))).reduce((s,[,v])=>s+v.valor,0))}</div>
+    </div>`;
+  });
+
+  document.getElementById('agenda-grid').innerHTML = gridHtml;
+  document.getElementById('totals-row').innerHTML = totalsHtml;
+}
+
+// ============================================================
+// LOJAS TAB
+// ============================================================
+function filterDay(btn, day) {
+  document.querySelectorAll('.filters .filter-btn:not(.comercial-btn)').forEach(b => b.classList.remove('active'));
+  // handle via all filter-btns
+  document.querySelectorAll('.actions-row .filter-btn:not(.comercial-btn)').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  activeDay = day;
+  renderLojas();
+}
+
+function filterComercial(btn) {
+  onlyComercial = !onlyComercial;
+  btn.classList.toggle('active', onlyComercial);
+  renderLojas();
+}
+
+function sortTable(col) {
+  if (sortCol === col) sortAsc = !sortAsc;
+  else { sortCol = col; sortAsc = false; }
+  renderLojas();
+}
+
+function renderLojas() {
+  const search = (document.getElementById('searchBox').value || '').toLowerCase();
+
+  let entries = Object.entries(storeData).map(([k, v]) => {
+    const loja = parseInt(k);
+    const v2 = calcVehicle(loja, v.peso);
+    const dias = Object.entries(AGENDA).filter(([,s]) => s.includes(loja)).map(([d])=>d);
+    return { loja, nome: LOJA_NOME[loja]||'?', peso: v.peso, cubagem: v.cubagem, valor: v.valor, linhas: v.linhas, itens: v.itens, tipo: v2.tipo, qtd: v2.qtd, dias, isCom: COMERCIAL.has(loja), noCarreta: NO_CARRETA.has(loja) };
+  });
+
+  // Filter by day
+  if (activeDay !== 'TODOS') {
+    entries = entries.filter(e => e.dias.includes(activeDay));
+  }
+  // Filter comercial
+  if (onlyComercial) entries = entries.filter(e => e.isCom);
+  // Search
+  if (search) entries = entries.filter(e => e.loja.toString().includes(search) || e.nome.toLowerCase().includes(search));
+
+  // Sort: comercial always first
+  entries.sort((a,b) => {
+    if (a.isCom !== b.isCom) return a.isCom ? -1 : 1;
+    const vals = { loja: [a.loja, b.loja], nome: [a.nome, b.nome], tipo: [a.tipo, b.tipo], dias: [a.dias.join(), b.dias.join()], peso: [a.peso, b.peso], cubagem: [a.cubagem, b.cubagem], valor: [a.valor, b.valor], linhas: [a.linhas, b.linhas], veiculo: [a.tipo, b.tipo] };
+    const [va, vb] = vals[sortCol] || [a.peso, b.peso];
+    if (va < vb) return sortAsc ? -1 : 1;
+    if (va > vb) return sortAsc ? 1 : -1;
+    return 0;
+  });
+
+  let html = '';
+  entries.forEach(e => {
+    const pct = Math.min(100, (e.peso / maxPeso) * 100);
+    const vc = vehColor(e.tipo);
+    const diasHtml = e.dias.map(d => `<span class="badge-day day-${d}">${d}</span>`).join('');
+    html += `<tr class="${e.isCom?'comercial-row':''}">
+      <td><b style="color:${e.isCom?'#f4a261':'var(--accent)'}">${e.loja}</b>${e.isCom?'<span class="priority-flag">⭐</span>':''}</td>
+      <td>${e.nome} ${e.isCom?'<span class="badge badge-comercial">COMERCIAL</span>':'<span class="badge badge-stok">STOK</span>'}</td>
+      <td>${e.isCom?'<span class="badge badge-comercial">COMERCIAL</span>':'<span class="badge badge-stok">STOK</span>'}</td>
+      <td>${diasHtml}</td>
+      <td>
+        <div class="weight-bar-wrap">
+          <div class="weight-bar"><div class="weight-fill" style="width:${pct}%;background:${vc}"></div></div>
+          <span class="weight-val" style="color:${vc}">${fmtKg(e.peso)}</span>
+        </div>
+      </td>
+      <td>${e.cubagem.toFixed(2)} m³</td>
+      <td>${fmtVal(e.valor)}</td>
+      <td>${e.linhas}</td>
+      <td>${vehBadge(e.tipo)}</td>
+      <td><b style="color:${vc}">${e.qtd}x</b></td>
+      <td><span class="badge ${e.noCarreta?'badge-nao-rot':'badge-sim'}">${e.noCarreta?'NÃO':'SIM'}</span></td>
+    </tr>`;
+  });
+
+  document.getElementById('lojas-tbody').innerHTML = html || '<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:30px">Nenhuma loja encontrada</td></tr>';
+  document.getElementById('badge-lojas').textContent = entries.length;
+}
+
+// ============================================================
+// VEICULOS TAB
+// ============================================================
+function renderVeiculos() {
+  const groups = { Carreta:[], Bitruck:[], Truck:[] };
+  let totalPeso = 0;
+
+  Object.entries(storeData).forEach(([k, v]) => {
+    const loja = parseInt(k);
+    const veh = calcVehicle(loja, v.peso);
+    groups[veh.tipo].push({ loja, nome: LOJA_NOME[loja]||'?', peso: v.peso, cubagem: v.cubagem, valor: v.valor, linhas: v.linhas, qtdVeh: veh.qtd, isCom: COMERCIAL.has(loja), noCarreta: NO_CARRETA.has(loja) });
+    totalPeso += v.peso;
+  });
+
+  const summaryHtml = `<div class="veh-summary">
+    <div class="veh-chip veh-chip-carreta">🚛 Carreta: ${groups.Carreta.length} lojas · ${groups.Carreta.reduce((s,e)=>s+e.qtdVeh,0)} veículos · ${fmtKg(groups.Carreta.reduce((s,e)=>s+e.peso,0))}</div>
+    <div class="veh-chip veh-chip-bitruck">🚚 Bitruck: ${groups.Bitruck.length} lojas · ${groups.Bitruck.reduce((s,e)=>s+e.qtdVeh,0)} veículos · ${fmtKg(groups.Bitruck.reduce((s,e)=>s+e.peso,0))}</div>
+    <div class="veh-chip veh-chip-truck">🚐 Truck: ${groups.Truck.length} lojas · ${groups.Truck.reduce((s,e)=>s+e.qtdVeh,0)} veículos · ${fmtKg(groups.Truck.reduce((s,e)=>s+e.peso,0))}</div>
+  </div>`;
+
+  document.getElementById('veh-summary-area').innerHTML = summaryHtml;
+  document.getElementById('badge-veiculos').textContent = Object.values(groups).flat().reduce((s,e)=>s+e.qtdVeh,0);
+
+  let cardsHtml = '';
+  ['Carreta','Bitruck','Truck'].forEach(tipo => {
+    if (groups[tipo].length === 0) return;
+    const col = vehColor(tipo);
+    const vc = tipo === 'Carreta' ? 'badge-carreta' : tipo === 'Bitruck' ? 'badge-bitruck' : 'badge-truck';
+    const icon = tipo === 'Carreta' ? '🚛' : tipo === 'Bitruck' ? '🚚' : '🚐';
+    const limite = tipo === 'Carreta' ? 26000 : tipo === 'Bitruck' ? 16000 : 11000;
+
+    // sort comercial first then peso desc
+    const sorted = [...groups[tipo]].sort((a,b) => {
+      if (a.isCom !== b.isCom) return a.isCom ? -1 : 1;
+      return b.peso - a.peso;
+    });
+
+    let rows = '';
+    sorted.forEach(e => {
+      const pct = Math.min(100, (e.peso / (e.qtdVeh * limite)) * 100);
+      const dias = Object.entries(AGENDA).filter(([,s])=>s.includes(e.loja)).map(([d])=>`<span class="badge-day day-${d}">${d}</span>`).join('');
+      rows += `<tr class="${e.isCom?'comercial-row':''}">
+        <td><b style="color:${e.isCom?'#f4a261':col}">${e.loja}</b>${e.isCom?'⭐':''}</td>
+        <td>${e.nome}</td>
+        <td>${dias}</td>
+        <td>
+          <div class="weight-bar-wrap">
+            <div class="weight-bar" style="min-width:80px"><div class="weight-fill" style="width:${pct}%;background:${col}"></div></div>
+            <span class="weight-val" style="color:${col}">${fmtKg(e.peso)}</span>
+          </div>
+        </td>
+        <td><b style="color:${col}">${e.qtdVeh}x ${icon}</b></td>
+        <td>${fmtVal(e.valor)}</td>
+        <td>${e.linhas}</td>
+        <td><span class="badge ${e.noCarreta?'badge-nao-rot':'badge-sim'}">${e.noCarreta?'NÃO':'SIM'}</span></td>
+      </tr>`;
+    });
+
+    cardsHtml += `<div style="margin-bottom:24px">
+      <div class="section-title" style="color:${col}">${icon} ${tipo} <span style="font-size:13px;color:var(--muted);font-weight:400;font-family:'Barlow',sans-serif">≤ ${fmtKg(limite)} por veículo · ${sorted.length} lojas · ${sorted.reduce((s,e)=>s+e.qtdVeh,0)} veículos</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Loja</th><th>Nome</th><th>Dias Entrega</th><th>Peso</th><th>Veículos</th><th>Valor</th><th>Linhas</th><th>Carreta?</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
+  });
+
+  document.getElementById('veh-cards-area').innerHTML = cardsHtml;
+}
+
+// ============================================================
+// TAB SWITCH
+// ============================================================
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    const ids = ['agenda','lojas','veiculos'];
+    t.classList.toggle('active', ids[i] === tab);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+}
+
+// ============================================================
+// EXPORT / SHARE
+// ============================================================
+function exportCSV() {
+  const entries = Object.entries(storeData).map(([k, v]) => {
+    const loja = parseInt(k);
+    const veh = calcVehicle(loja, v.peso);
+    const dias = Object.entries(AGENDA).filter(([,s])=>s.includes(loja)).map(([d])=>d).join('/');
+    return [loja, LOJA_NOME[loja]||'?', COMERCIAL.has(loja)?'SIM':'NÃO', NO_CARRETA.has(loja)?'NÃO':'SIM', dias, v.peso.toFixed(2), v.cubagem.toFixed(4), v.valor.toFixed(2), v.linhas, veh.tipo, veh.qtd].join(';');
+  });
+  const header = 'Loja;Nome;Comercial;Aceita Carreta;Dias Entrega;Peso(kg);Cubagem(m3);Valor(R$);Linhas;Tipo Veiculo;Qtd Veiculos';
+  const blob = new Blob(['\uFEFF'+header+'\n'+entries.join('\n')], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'escala_roteirizacao_' + new Date().toLocaleDateString('pt-BR').replace(/\//g,'-') + '.csv';
+  a.click(); URL.revokeObjectURL(url);
+}
+
+function shareWhatsapp() {
+  const lines = ['*📦 ESCALA ROTEIRIZAÇÃO CD107 · ' + new Date().toLocaleDateString('pt-BR') + '*', ''];
+  const days = ['DOM','SEG','TER','QUA','QUI'];
+  days.forEach(day => {
+    const stores = AGENDA[day].filter(l => storeData[l]?.peso > 0);
+    if (!stores.length) return;
+    lines.push(`*${day} 22h:*`);
+    stores.sort((a,b) => {
+      if (COMERCIAL.has(a) !== COMERCIAL.has(b)) return COMERCIAL.has(a) ? -1 : 1;
+      return (storeData[b]?.peso||0) - (storeData[a]?.peso||0);
+    }).forEach(l => {
+      const d = storeData[l];
+      const v = calcVehicle(l, d.peso);
+      lines.push(`  ${COMERCIAL.has(l)?'⭐':'▸'} Loja ${l} ${LOJA_NOME[l]||''} · ${fmtKg(d.peso)} · ${v.tipo}${v.qtd>1?' x'+v.qtd:''}`);
+    });
+    lines.push('');
+  });
+  const total = Object.values(storeData).reduce((s,v)=>s+v.peso,0);
+  lines.push(`*Total: ${fmtKg(total)} não roterizados*`);
+  const msg = lines.join('\n');
+  window.open('https://api.whatsapp.com/send?text=' + encodeURIComponent(msg), '_blank');
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function fmtKg(v) {
+  if (v >= 1000) return (v/1000).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1}) + 't';
+  return v.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0}) + ' kg';
+}
+function fmtVal(v) {
+  return 'R$ ' + v.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
+}
+</script>
+</body>
+</html>
